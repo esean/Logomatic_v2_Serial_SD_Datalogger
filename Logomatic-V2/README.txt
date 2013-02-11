@@ -10,3 +10,7 @@ orig - as copied from SF website, no changes
 6 - small cleanups, sanity restored (NEED TO FORMAT SDCARD. ALWAYS WORK IN WINDOWS, MAC SCREWS UP MEMORY CARD!) dual-channel capture working, added photo resistor
 7 - put uC to idle mode in mode_action to save power, each interrupt wakes it to see if something to do:w
 
+8 - TODO:added RTC
+    # TODO: turn on RTC and log times to files, or at least log the start time and sampling frequency
+    # TODO: hw mod to lift pin 49 and wire to vbat so RTC remains running when off
+

@@ -1,9 +1,17 @@
-#define VERSION 7
+
+#define VERSION ((const char *)"8")
+
 
 /*********************************************************************************
  * Logomatic V2 Firmware
  * Sparkfun Electronics 2008
+ * ******************************************************************************
+ *
+ * 02/2013 - Fixes to SF Github repo, low-power changes, write debugs to SDcard
+ *             seanharre@gmail.com
+ *
  * ******************************************************************************/
+
 
 /*******************************************************
  * 		     Header Files
@@ -234,7 +242,7 @@ void error_dbg_to_sdcard_fatal(const char * fmt, ...)
 
 void write_out_config()
 {
-    sd_printf("#\n# BOOTING V%d\n#\n",VERSION);
+    sd_printf("#\n# BOOTING V%s\n#\n",VERSION);
     sd_printf("# mode = %d\n",mode);
     sd_printf("# asc = %c\n",asc);
     sd_printf("# baud = %d\n",baudlc);
