@@ -41,11 +41,12 @@ SRC += $(LIBPATH)syscalls.c
 SRC += $(LIBPATH)rprintf.c 
 SRC += $(LIBPATH)string_printf.c 
 SRC += $(LIBPATH)serial.c 
+SRC += $(LIBPATH)byteordering.c
 
 #Functions for SD interaction
 SRC += $(LIBPATH)rootdir.c 
 SRC += $(LIBPATH)sd_raw.c 
-SRC += $(LIBPATH)fat16.c 
+SRC += $(LIBPATH)fat.c 
 SRC += $(LIBPATH)partition.c 
 SRC += $(LIBPATH)itoa.c
 
@@ -252,12 +253,27 @@ LPC21ISP_CONTROL = -control
 
 # Define programs and commands.
 SHELL = sh
+
+#ifdef _WinARM_
 CC = arm-elf-gcc
 CPP = arm-elf-g++
 OBJCOPY = arm-elf-objcopy
 OBJDUMP = arm-elf-objdump
 SIZE = arm-elf-size
 NM = arm-elf-nm
+
+#else
+
+# Mac cmd-line with ARM toolchain
+# https://launchpad.net/gcc-arm-embedded/+download
+CC = arm-none-eabi-gcc
+CPP = arm-none-eabi-g++
+OBJCOPY = arm-none-eabi-objcopy
+OBJDUMP = arm-none-eabi-objdump
+SIZE = arm-none-eabi-size
+NM = arm-none-eabi-nm
+#endif
+
 REMOVE = rm -f
 COPY = cp
 

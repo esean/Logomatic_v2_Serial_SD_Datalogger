@@ -26,7 +26,7 @@
 
 //Needed for main function calls
 #include "main_msc.h"
-#include "fat16.h"
+#include "fat.h"
 #include "armVIC.h"
 #include "itoa.h"
 #include "rootdir.h"
@@ -52,8 +52,8 @@ short RX_in = 0;
 char get_frame = 0;
 
 signed int stringSize;
-struct fat16_file_struct* handle;
-struct fat16_file_struct * fd;
+struct fat_file_struct* handle;
+struct fat_file_struct * fd;
 char stringBuf[256];
 
 // Default Settings
@@ -646,7 +646,7 @@ void write_sdcard_buffers_if_full()
 
         stat(0,ON);
             
-        if(fat16_write_file(handle,(unsigned char *)RX_array1, stringSize) < 0)
+        if(fat_write_file(handle,(unsigned char *)RX_array1, stringSize) < 0)
         {
             ERROR_do_while1_error_LEDs_blink(0);
 
@@ -662,7 +662,7 @@ void write_sdcard_buffers_if_full()
         log_array2 = 0;
         stat(1,ON);
         
-        if(fat16_write_file(handle,(unsigned char *)RX_array2, stringSize) < 0)
+        if(fat_write_file(handle,(unsigned char *)RX_array2, stringSize) < 0)
         {
             ERROR_do_while1_error_LEDs_blink(0);
 
@@ -688,12 +688,12 @@ void mode_action(void)
 
 			if(RX_in < 512)
 			{
-				fat16_write_file(handle, (unsigned char *)RX_array1, RX_in);
+				fat_write_file(handle, (unsigned char *)RX_array1, RX_in);
 				sd_raw_sync();
 			}
 			else if(RX_in >= 512)
 			{
-				fat16_write_file(handle, (unsigned char *)RX_array2, RX_in - 512);
+				fat_write_file(handle, (unsigned char *)RX_array2, RX_in - 512);
 				sd_raw_sync();
 			}
 
@@ -766,9 +766,9 @@ void Log_init(void)
 	{
 		//rprintf("\n\rFound LOGcon.txt\n");
 		fd = root_open("LOGCON.txt");
-		stringSize = fat16_read_file(fd, (unsigned char *)stringBuf, 512);
+		stringSize = fat_read_file(fd, (unsigned char *)stringBuf, 512);
 		stringBuf[stringSize] = '\0';
-		fat16_close_file(fd);
+		fat_close_file(fd);
 	}
 	else
 	{
@@ -786,7 +786,7 @@ void Log_init(void)
         snprintf((char *)stringBuf, sizeof(stringBuf), (const char *)"MODE = %d\r\nASCII = %c\r\nBaud = %d\r\nFrequency = %d\r\nTrigger Character = %c\r\nText Frame = %d\r\nAD1.3 = %c\r\nAD0.3 = %c\r\nAD0.2 = %c\r\nAD0.1 = %c\r\nAD1.2 = %c\r\nAD0.4 = %c\r\nAD1.7 = %c\r\nAD1.6 = %c\r\nSaftey On = Y\r\n",mode,asc,baudlc,freq,trig,frame,ad1_3,ad0_3,ad0_2,ad0_1,ad1_2,ad0_4,ad1_7,ad1_6);
 		//strcpy(stringBuf, "MODE = %d\r\nASCII = %c\r\nBaud = %d\r\nFrequency = %d\r\nTrigger Character = %c\r\nText Frame = %d\r\nAD1.3 = %c\r\nAD0.3 = %c\r\nAD0.2 = %c\r\nAD0.1 = %c\r\nAD1.2 =%cN\r\nAD0.4 = %c\r\nAD1.7 = %c\r\nAD1.6 = %c\r\nSaftey On = Y\r\n",mode,asc,baud,freq,trig,frame,ad1_3,ad0_3,ad0_2,ad0_1,ad1_2,ad0_4,ad1_7,ad1_6);
 		stringSize = strlen(stringBuf);
-		fat16_write_file(fd, (unsigned char*)stringBuf, stringSize);
+		fat_write_file(fd, (unsigned char*)stringBuf, stringSize);
 		sd_raw_sync();
 	}
 
