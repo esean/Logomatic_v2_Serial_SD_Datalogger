@@ -254,16 +254,15 @@ LPC21ISP_CONTROL = -control
 # Define programs and commands.
 SHELL = sh
 
-#ifdef _WinARM_
+ifeq ($(OS),Windows_NT)
+# WinARM
 CC = arm-elf-gcc
 CPP = arm-elf-g++
 OBJCOPY = arm-elf-objcopy
 OBJDUMP = arm-elf-objdump
 SIZE = arm-elf-size
 NM = arm-elf-nm
-
-#else
-
+else
 # Mac cmd-line with ARM toolchain
 # https://launchpad.net/gcc-arm-embedded/+download
 CC = arm-none-eabi-gcc
@@ -272,7 +271,7 @@ OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE = arm-none-eabi-size
 NM = arm-none-eabi-nm
-#endif
+endif
 
 REMOVE = rm -f
 COPY = cp
@@ -495,6 +494,7 @@ clean: begin clean_list finished end
 clean_list :
 	@echo
 	@echo $(MSG_CLEANING)
+	$(REMOVE) .dep/*
 	$(REMOVE) ../Common_WinARM/$(TARGET).hex
 	$(REMOVE) $(TARGET).hex
 	$(REMOVE) $(TARGET).bin
@@ -522,7 +522,6 @@ clean_list :
 	$(REMOVE) $(CPPSRCARM:.cpp=.s) 
 	$(REMOVE) $(CPPSRCARM:.cpp=.d)
 	$(REMOVE) FW.SFE
-	$(REMOVE) .dep/*
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
