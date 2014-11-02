@@ -146,8 +146,10 @@ CDEFS += -D$(VECTOR_LOCATION)
 ADEFS += -D$(VECTOR_LOCATION)
 endif
 
+ifeq ($(OS),Windows_NT)
 CDEFS += -D__WinARM__
 ADEFS += -D__WinARM__
+endif
 
 # Compiler flags.
 #  -g*:          generate debugging information
