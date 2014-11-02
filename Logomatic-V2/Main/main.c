@@ -1,3 +1,4 @@
+/* Copyright (c) 2014 */
 
 #define VERSION ((const char *)"9")
 
@@ -9,6 +10,7 @@
  *
  * 02/2013 - Fixes to SF Github repo, low-power changes, write debugs to SDcard
  *             seanharre@gmail.com
+ * 10/2014 - Applied Fat32 support updates
  *
  * ******************************************************************************/
 
@@ -92,6 +94,7 @@ void mode_action(void);
 void Log_init(void);
 void test(void);
 void stat(int statnum, int onoff);
+void AD_conversion(int regbank);
 
 void feed(void);
 
@@ -128,9 +131,10 @@ int main (void)
 	
 	Initialize();
 	
+	setup_uart0(9600, 0);
+
 	fat_initialize();		
 
-	setup_uart0(9600, 0);
 
 	// Flash Status Lights
 	for(i = 0; i < 5; i++)
@@ -263,14 +267,6 @@ void feed(void)
 {
 	PLLFEED=0xAA;
 	PLLFEED=0x55;
-}
-
-void delay_ms(int count)
-{
-	int i;
-	count *= 10000;
-	for(i = 0; i < count; i++)
-		asm volatile ("nop");
 }
 
 static void UART0ISR(void)
@@ -743,20 +739,6 @@ void Initialize(void)
 
 }
 
-void fat_initialize(void)
-{
-	if(!sd_raw_init())
-	{
-		rprintf("SD Init Error\n\r");
-        ERROR_do_while1_error_LEDs_blink(1);
-	}
-
-	if(openroot())
-	{ 
-		rprintf("SD OpenRoot Error\n\r");
-	}
-}
-
 void Log_init(void)
 {
 	int x, mark = 0, ind = 0;
@@ -941,40 +923,6 @@ void Log_init(void)
 //    TEST
 //--------------------------------------------------------------------------
 
-void AD_conversion(int regbank)
-{
-	int temp = 0, temp2;
-
-	if(!regbank) // bank 0
-	{
-		AD0CR |= 0x01000000; // start conversion
-		while((temp & 0x80000000) == 0)
-		{
-			temp = AD0DR;
-		}
-		temp &= 0x0000FFC0;
-		temp2 = temp / 0x00000040;
-
-		AD0CR = 0x00000000;
-	}
-	else	    // bank 1
-	{
-		AD1CR |= 0x01000000; // start conversion
-		while((temp & 0x80000000) == 0)
-		{
-			temp = AD1DR;
-		}
-		temp &= 0x0000FFC0;
-		temp2 = temp / 0x00000040;
-
-		AD1CR = 0x00000000;
-	}
-
-	rprintf("%d", temp2);
-	rprintf("   ");
-	
-}
-
 void test(void)
 {
 
@@ -1026,3 +974,58 @@ void test(void)
 		
 }
 
+void AD_conversion(int regbank)
+{
+	int temp = 0, temp2;
+
+	if(!regbank) // bank 0
+	{
+		AD0CR |= 0x01000000; // start conversion
+		while((temp & 0x80000000) == 0)
+		{
+			temp = AD0DR;
+		}
+		temp &= 0x0000FFC0;
+		temp2 = temp / 0x00000040;
+
+		AD0CR = 0x00000000;
+	}
+	else	    // bank 1
+	{
+		AD1CR |= 0x01000000; // start conversion
+		while((temp & 0x80000000) == 0)
+		{
+			temp = AD1DR;
+		}
+		temp &= 0x0000FFC0;
+		temp2 = temp / 0x00000040;
+
+		AD1CR = 0x00000000;
+	}
+
+	rprintf("%d", temp2);
+	rprintf("   ");
+	
+}
+
+void fat_initialize(void)
+{
+	if(!sd_raw_init())
+	{
+		rprintf("SD Init Error\n\r");
+        ERROR_do_while1_error_LEDs_blink(1);
+	}
+
+	if(openroot())
+	{ 
+		rprintf("SD OpenRoot Error\n\r");
+	}
+}
+
+void delay_ms(int count)
+{
+	int i;
+	count *= 10000;
+	for(i = 0; i < count; i++)
+		asm volatile ("nop");
+}
