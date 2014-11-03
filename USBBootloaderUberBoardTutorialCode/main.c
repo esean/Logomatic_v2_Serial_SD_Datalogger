@@ -3,9 +3,9 @@
 
 //General Definitions for Code Readability
 //The pin numbers were found on the UberBoard v2 Schematic
-#define RED_LED		(1<<18)	//The Red LED is on Port 0-Pin 18
-#define GREEN_LED	(1<<19)	//The Green LED is on Port 0-Pin 19
-#define BLUE_LED	(1<<20)	//The Blue LED is on Port 0-Pin 20
+#define RED_LED		(1<<2)	//The Red LED is on Port 0-Pin 18
+#define GREEN_LED	(1<<11)	//The Green LED is on Port 0-Pin 19
+#define USB_LED     (1<<31)
 
 //*******************************************************
 //					Function Prototypes
@@ -17,22 +17,19 @@ int main (void)
 //*******************************************************
 //					Initialization
 //*******************************************************
-IODIR0 |= RED_LED | GREEN_LED | BLUE_LED;	//Set the Red, Green and Blue LED pins as outputs
-IOSET0 = RED_LED | GREEN_LED | BLUE_LED;	//Initially turn all of the LED's off
+IODIR0 |= RED_LED | GREEN_LED | USB_LED;	//Set the Red, Green and Blue LED pins as outputs
+IOSET0 = RED_LED | GREEN_LED | USB_LED;	//Initially turn all of the LED's off
 
 //*******************************************************
 //					Main Code
 //*******************************************************
 while(1){	//Now that everything is initialized, let's run an endless program loop
 	IOCLR0 = RED_LED;	//Turn on the Red LED
-	IOSET0 = GREEN_LED | BLUE_LED;	//Make sure Green and Blue are off
+	IOSET0 = GREEN_LED;	//Make sure Green and Blue are off
 	delay_ms(333);		//Leave the Red LED on for 1/3 of a second
 	IOCLR0 = GREEN_LED;	//Now turn the Green LED on
-	IOSET0 = RED_LED | BLUE_LED;	//and turn off Red and Blue
+	IOSET0 = RED_LED;	//and turn off Red and Blue
 	delay_ms(333);		//Leave the Green LED on for 1/3 of a second
-	IOCLR0 = BLUE_LED; //Now turn on the Blue LED
-	IOSET0 = RED_LED | GREEN_LED;	//Make sure Red and Green are off
-	delay_ms(333);		//Leave the Blue LED on for 1/3 of a second
 }
 
 return 0;
