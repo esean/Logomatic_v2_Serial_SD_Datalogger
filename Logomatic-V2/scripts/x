@@ -1,0 +1,4 @@
+killall gnuplot-4.2.5
+echo -e "\n...killed all gnuplot-4.2.5...   any left...?"
+ps | grep gnuplot | grep -v 'grep gnuplot'
+echo -e "\n...done looking"

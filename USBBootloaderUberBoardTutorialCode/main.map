@@ -1,0 +1,249 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ROM              0x00010000         0x0005f000         xr
+RAM              0x40000000         0x00008000         rw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD Startup.o
+LOAD main.o
+LOAD syscalls.o
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/../../../../arm-elf/lib/interwork\libc.a
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/../../../../arm-elf/lib/interwork\libm.a
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/../../../../arm-elf/lib/interwork\libc.a
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/interwork\libgcc.a
+START GROUP
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/interwork\libgcc.a
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/../../../../arm-elf/lib/interwork\libg.a
+LOAD c:/winarm/bin/../lib/gcc/arm-elf/4.1.1/../../../../arm-elf/lib/interwork\libc.a
+END GROUP
+
+.text           0x00010000      0x27c
+ *(.vectorg)
+ .vectorg       0x00010000       0x98 Startup.o
+                0x00010050                __IRQ_Wrapper
+                0x00010098                . = ALIGN (0x4)
+ *(.init)
+ .init          0x00010098       0xfc Startup.o
+                0x00010164                __exit_THUMB
+                0x00010098                __startup
+                0x00010160                __exit_ARM
+ *(.text .text.*)
+ .text          0x00010194        0x0 Startup.o
+ .text          0x00010194       0x84 main.o
+                0x000101bc                main
+                0x00010194                delay_ms
+ .text          0x00010218       0x64 syscalls.o
+                0x00010230                _lseek_r
+                0x00010238                _fstat_r
+                0x00010248                isatty
+                0x00010250                _sbrk_r
+                0x00010218                _read_r
+                0x00010228                _close_r
+                0x00010220                _write_r
+ *(.gnu.linkonce.t.*)
+ *(.glue_7)
+ .glue_7        0x0001027c        0x0 Startup.o
+ .glue_7        0x0001027c        0x0 main.o
+ .glue_7        0x0001027c        0x0 syscalls.o
+ *(.glue_7t)
+ .glue_7t       0x0001027c        0x0 Startup.o
+ .glue_7t       0x0001027c        0x0 main.o
+ .glue_7t       0x0001027c        0x0 syscalls.o
+ *(.gcc_except_table)
+ *(.rodata)
+ *(.rodata*)
+ *(.gnu.linkonce.r.*)
+                0x0001027c                . = ALIGN (0x4)
+                0x0001027c                . = ALIGN (0x4)
+
+.ctors          0x0001027c        0x0
+                0x0001027c                PROVIDE (__ctors_start__, .)
+ *(SORT(.ctors.*))
+ *(.ctors)
+                0x0001027c                . = ALIGN (0x4)
+                0x0001027c                PROVIDE (__ctors_end__, .)
+                0x0001027c                . = ALIGN (0x4)
+
+.dtors          0x0001027c        0x0
+                0x0001027c                PROVIDE (__dtors_start__, .)
+ *(SORT(.dtors.*))
+ *(.dtors)
+                0x0001027c                . = ALIGN (0x4)
+                0x0001027c                PROVIDE (__dtors_end__, .)
+                0x0001027c                . = ALIGN (0x4)
+                0x0001027c                . = ALIGN (0x4)
+                0x0001027c                _etext = .
+                0x0001027c                PROVIDE (etext, .)
+
+.data           0x40000000        0x0 load address 0x0001027c
+                0x40000000                _data = .
+ *(.vectmapped)
+                0x40000000                . = ALIGN (0x4)
+ *(.fastrun)
+                0x40000000                . = ALIGN (0x4)
+                0x40000000                . = ALIGN (0x4)
+ *(.data)
+ .data          0x40000000        0x0 Startup.o
+ .data          0x40000000        0x0 main.o
+ .data          0x40000000        0x0 syscalls.o
+ *(.data.*)
+ *(.gnu.linkonce.d*)
+                0x40000000                . = ALIGN (0x4)
+                0x40000000                . = ALIGN (0x4)
+                0x40000000                _edata = .
+                0x40000000                PROVIDE (edata, .)
+
+.bss            0x40000000        0x4
+                0x40000000                __bss_start = .
+                0x40000000                __bss_start__ = .
+ *(.bss)
+ .bss           0x40000000        0x0 Startup.o
+ .bss           0x40000000        0x0 main.o
+ .bss           0x40000000        0x4 syscalls.o
+ *(.gnu.linkonce.b*)
+ *(COMMON)
+                0x40000004                . = ALIGN (0x4)
+                0x40000004                . = ALIGN (0x4)
+                0x40000004                __bss_end__ = .
+                0x40000004                PROVIDE (__bss_end, .)
+
+.stack          0x40000100      0xc00
+ *(.stack)
+ .stack         0x40000100      0xc00 Startup.o
+                0x40000d00                PROVIDE (_stack, .)
+                0x40000d00                . = ALIGN (0x4)
+                0x40000d00                _end = .
+                0x40000d00                PROVIDE (end, .)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x00000000       0x36
+ *(.comment)
+ .comment       0x00000000       0x1b main.o
+ .comment       0x0000001b       0x1b syscalls.o
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges  0x00000000       0x68
+ *(.debug_aranges)
+ .debug_aranges
+                0x00000000       0x28 Startup.o
+ .debug_aranges
+                0x00000028       0x20 main.o
+ .debug_aranges
+                0x00000048       0x20 syscalls.o
+
+.debug_pubnames
+                0x00000000       0x91
+ *(.debug_pubnames)
+ .debug_pubnames
+                0x00000000       0x28 main.o
+ .debug_pubnames
+                0x00000028       0x69 syscalls.o
+
+.debug_info     0x00000000      0xd93
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x00000000       0x8d Startup.o
+ .debug_info    0x0000008d       0x78 main.o
+ .debug_info    0x00000105      0xc8e syscalls.o
+
+.debug_abbrev   0x00000000      0x240
+ *(.debug_abbrev)
+ .debug_abbrev  0x00000000       0x10 Startup.o
+ .debug_abbrev  0x00000010       0x6b main.o
+ .debug_abbrev  0x0000007b      0x1c5 syscalls.o
+
+.debug_line     0x00000000      0x24a
+ *(.debug_line)
+ .debug_line    0x00000000       0xa3 Startup.o
+ .debug_line    0x000000a3       0x4a main.o
+ .debug_line    0x000000ed      0x15d syscalls.o
+
+.debug_frame    0x00000000       0xbc
+ *(.debug_frame)
+ .debug_frame   0x00000000       0x3c main.o
+ .debug_frame   0x0000003c       0x80 syscalls.o
+
+.debug_str      0x00000000      0x59a
+ *(.debug_str)
+ .debug_str     0x00000000       0x8d main.o
+                                 0x93 (size before relaxing)
+ .debug_str     0x0000008d      0x50d syscalls.o
+                                0x5ea (size before relaxing)
+
+.debug_loc      0x00000000       0xd5
+ *(.debug_loc)
+ .debug_loc     0x00000000       0x3d main.o
+ .debug_loc     0x0000003d       0x98 syscalls.o
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+OUTPUT(main.elf elf32-littlearm)
+
+Cross Reference Table
+
+Symbol                                            File
+__IRQ_Wrapper                                     Startup.o
+__bss_end__                                       Startup.o
+__bss_start__                                     Startup.o
+__ctors_end__                                     Startup.o
+__ctors_start__                                   Startup.o
+__exit_ARM                                        Startup.o
+__exit_THUMB                                      Startup.o
+__startup                                         Startup.o
+_close_r                                          syscalls.o
+_data                                             Startup.o
+_edata                                            Startup.o
+_etext                                            Startup.o
+_fstat_r                                          syscalls.o
+_lseek_r                                          syscalls.o
+_read_r                                           syscalls.o
+_sbrk_r                                           syscalls.o
+_write_r                                          syscalls.o
+delay_ms                                          main.o
+end                                               syscalls.o
+isatty                                            syscalls.o
+main                                              main.o
+                                                  Startup.o

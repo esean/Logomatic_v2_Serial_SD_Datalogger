@@ -1,0 +1,634 @@
+
+main.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         0000027c  00010000  00010000  00008000  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .bss          00000004  40000000  40000000  0000827c  2**2
+                  ALLOC
+  2 .stack        00000c00  40000100  40000100  00008280  2**4
+                  CONTENTS
+  3 .comment      00000036  00000000  00000000  00008e80  2**0
+                  CONTENTS, READONLY
+  4 .debug_aranges 00000068  00000000  00000000  00008eb8  2**3
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_pubnames 00000091  00000000  00000000  00008f20  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_info   00000d93  00000000  00000000  00008fb1  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_abbrev 00000240  00000000  00000000  00009d44  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_line   0000024a  00000000  00000000  00009f84  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_frame  000000bc  00000000  00000000  0000a1d0  2**2
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_str    0000059a  00000000  00000000  0000a28c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_loc    000000d5  00000000  00000000  0000a826  2**0
+                  CONTENTS, READONLY, DEBUGGING
+Disassembly of section .text:
+
+00010000 <__Vectors>:
+// Exception Vectors
+// Mapped to Address 0.
+// Absolute addressing mode must be used.
+
+__Vectors:        LDR     PC,Reset_Addr         
+   10000:	e59ff018 	ldr	pc, [pc, #24]	; 10020 <Reset_Addr>
+                LDR     PC,Undef_Addr
+   10004:	e59ff018 	ldr	pc, [pc, #24]	; 10024 <Undef_Addr>
+                LDR     PC,SWI_Addr
+   10008:	e59ff018 	ldr	pc, [pc, #24]	; 10028 <SWI_Addr>
+                LDR     PC,PAbt_Addr
+   1000c:	e59ff018 	ldr	pc, [pc, #24]	; 1002c <PAbt_Addr>
+                LDR     PC,DAbt_Addr
+   10010:	e59ff018 	ldr	pc, [pc, #24]	; 10030 <DAbt_Addr>
+                NOP                            /* Reserved Vector */
+   10014:	e1a00000 	nop			(mov r0,r0)
+//                LDR     PC,IRQ_Addr
+//                LDR     PC,[PC, #-0x0FF0]      /* Vector from VicVectAddr */
+                LDR     PC,IRQ_Wrapper_Addr
+   10018:	e59ff018 	ldr	pc, [pc, #24]	; 10038 <IRQ_Wrapper_Addr>
+                LDR     PC,FIQ_Addr
+   1001c:	e59ff018 	ldr	pc, [pc, #24]	; 1003c <FIQ_Addr>
+
+00010020 <Reset_Addr>:
+   10020:	00010098 	muleq	r1, r8, r0
+
+00010024 <Undef_Addr>:
+   10024:	00010040 	andeq	r0, r1, r0, asr #32
+
+00010028 <SWI_Addr>:
+   10028:	00000000 	andeq	r0, r0, r0
+
+0001002c <PAbt_Addr>:
+   1002c:	00010044 	andeq	r0, r1, r4, asr #32
+
+00010030 <DAbt_Addr>:
+   10030:	00010048 	andeq	r0, r1, r8, asr #32
+   10034:	00000000 	andeq	r0, r0, r0
+
+00010038 <IRQ_Wrapper_Addr>:
+   10038:	00010050 	andeq	r0, r1, r0, asr r0
+
+0001003c <FIQ_Addr>:
+   1003c:	0001004c 	andeq	r0, r1, ip, asr #32
+
+00010040 <Undef_Handler>:
+
+Reset_Addr:       .word     Reset_Handler
+Undef_Addr:       .word     Undef_Handler
+// SWI_Addr:         .word     SWI_Handler
+// SWI_Wrapper_Addr: .word     SWI_Wrapper
+SWI_Addr:         .word     0      /* in swi_handler.S */
+PAbt_Addr:        .word     PAbt_Handler
+DAbt_Addr:        .word     DAbt_Handler
+                  .word     0                      /* Reserved Address */
+// IRQ_Addr:         .word     __IRQ_Handler
+IRQ_Wrapper_Addr: .word    __IRQ_Wrapper
+FIQ_Addr:         .word     FIQ_Handler
+
+Undef_Handler:  B       Undef_Handler
+   10040:	eafffffe 	b	10040 <Undef_Handler>
+
+00010044 <PAbt_Handler>:
+/* SWI_Handler:    B       SWI_Handler */
+PAbt_Handler:   B       PAbt_Handler
+   10044:	eafffffe 	b	10044 <PAbt_Handler>
+
+00010048 <DAbt_Handler>:
+DAbt_Handler:   B       DAbt_Handler
+   10048:	eafffffe 	b	10048 <DAbt_Handler>
+
+0001004c <FIQ_Handler>:
+/* IRQ_Handler:    B       IRQ_Handler */
+FIQ_Handler:    B       FIQ_Handler
+   1004c:	eafffffe 	b	1004c <FIQ_Handler>
+
+00010050 <__IRQ_Wrapper>:
+
+.size   __Vectors, . - __Vectors
+
+
+
+.arm
+.section .init, "ax"
+
+.if (VECTREMAPPED)
+/* mthomas: Dummy used during startup - mind the nops since the 
+   flash-utility will overwrite the "reserved vector"-address
+   with the checksum */
+				B Reset_Handler
+				NOP
+				NOP
+				NOP
+				NOP
+				NOP  /* Reserved Address */
+				NOP
+				NOP
+.endif
+
+.arm
+.section .init, "ax"
+.global __startup
+.func __startup
+__startup:
+
+Reset_Handler:  
+
+
+// Memory Mapping
+                .set MEMMAP, 0xE01FC040  /* Memory Mapping Control */
+
+.if (REMAP)
+                LDR     R0, =MEMMAP
+.if     (EXTMEM_MODE)                
+                MOV     R1, #3
+.elseif (RAM_MODE) || (VECTREMAPPED)
+.print "MEMMAP to 2 on init"
+                MOV     R1, #2
+.else
+                MOV     R1, #1
+.endif
+                STR     R1, [R0]
+.endif
+
+// Setup Stack for each mode
+                LDR     R0, =Top_Stack
+
+// Enter Undefined Instruction Mode and set its Stack Pointer
+                MSR     CPSR_c, #Mode_UND|I_Bit|F_Bit
+                MOV     SP, R0
+                SUB     R0, R0, #UND_Stack_Size
+
+// Enter Abort Mode and set its Stack Pointer
+                MSR     CPSR_c, #Mode_ABT|I_Bit|F_Bit
+                MOV     SP, R0
+                SUB     R0, R0, #ABT_Stack_Size
+
+// Enter FIQ Mode and set its Stack Pointer
+                MSR     CPSR_c, #Mode_FIQ|I_Bit|F_Bit
+                MOV     SP, R0
+                SUB     R0, R0, #FIQ_Stack_Size
+
+// Enter IRQ Mode and set its Stack Pointer
+                MSR     CPSR_c, #Mode_IRQ|I_Bit|F_Bit
+                MOV     SP, R0
+                SUB     R0, R0, #IRQ_Stack_Size
+
+// Enter Supervisor Mode and set its Stack Pointer
+                MSR     CPSR_c, #Mode_SVC|I_Bit|F_Bit
+                MOV     SP, R0
+                SUB     R0, R0, #SVC_Stack_Size
+
+// Enter User Mode and set its Stack Pointer
+                MSR     CPSR_c, #Mode_SYS /* Interrupts enabled */
+//				MSR     CPSR_c, #Mode_USR|I_Bit|F_Bit /* Interrupts disabled */
+                MOV     SP, R0
+
+
+.if (RAM_MODE==0)
+/* Relocate .data section (Copy from ROM to RAM) */
+                LDR     R1, =_etext 
+                LDR     R2, =_data 
+                LDR     R3, =_edata 
+                CMP     R2, R3
+                BEQ     DataIsEmpty
+LoopRel:        CMP     R2, R3 
+                LDRLO   R0, [R1], #4 
+                STRLO   R0, [R2], #4 
+                BLO     LoopRel 
+DataIsEmpty:
+.endif
+ 
+/* Clear .bss section (Zero init) */
+                MOV     R0, #0 
+                LDR     R1, =__bss_start__ 
+                LDR     R2, =__bss_end__ 
+                CMP     R1,R2
+                BEQ     BSSIsEmpty
+LoopZI:         CMP     R1, R2 
+                STRLO   R0, [R1], #4 
+                BLO     LoopZI 
+BSSIsEmpty:
+
+
+// call C++ constructors of global objects
+		LDR 	r0, =__ctors_start__
+		LDR 	r1, =__ctors_end__
+ctor_loop:
+		CMP 	r0, r1
+		BEQ 	ctor_end
+		LDR 	r2, [r0], #4
+		STMFD 	sp!, {r0-r1}
+		MOV 	lr, pc
+		MOV 	pc, r2
+		LDMFD 	sp!, {r0-r1}
+		B 		ctor_loop
+ctor_end:
+
+// Enter the C code
+                //LDR     R0,=INIT
+                LDR     R0,=main
+                TST     R0,#1             // Bit-0 set: main is Thumb
+                LDREQ   LR,=__exit_ARM    // ARM Mode
+                LDRNE   LR,=__exit_THUMB  // Thumb Mode
+                BX      R0
+
+.size   __startup, . - __startup
+.endfunc
+
+.arm
+.global __exit_ARM
+.func __exit_ARM
+__exit_ARM:
+                B       __exit_ARM
+.size   __exit_ARM, . - __exit_ARM
+.endfunc
+
+.thumb
+.global __exit_THUMB
+.func __exit_THUMB
+__exit_THUMB:
+                B       __exit_THUMB
+.size   __exit_THUMB, . - __exit_THUMB
+.endfunc
+
+
+/* mthomas: the following code is inspired by various examples and
+   documents from ARM, Atmel, Anglia Designs and others */
+
+
+.text
+.arm
+
+.if (VECTREMAPPED)
+.print "Handlers in section .vectmapped -> .data"
+.section .vectmapped, "ax"
+.else
+.print "Handlers in section .vectorg -> .code/.text"
+.section .vectorg, "ax"
+.endif
+
+.set VIC_base_addr, 0xFFFFF000
+.set VIC_vect_offs, 0x30
+
+        .arm
+        .global __IRQ_Wrapper
+        .func   __IRQ_Wrapper
+__IRQ_Wrapper:
+/*- Manage Exception Entry  */
+/*- Adjust and save LR_irq in IRQ stack  */
+            sub         lr, lr, #4
+   10050:	e24ee004 	sub	lr, lr, #4	; 0x4
+            stmfd       sp!, {lr}
+   10054:	e92d4000 	stmdb	sp!, {lr}
+
+/*- Save SPSR need to be saved for nested interrupt */
+            mrs         r14, SPSR
+   10058:	e14fe000 	mrs	lr, SPSR
+            stmfd       sp!, {r14}
+   1005c:	e92d4000 	stmdb	sp!, {lr}
+
+/*- Save and r0 in IRQ stack  */
+            stmfd       sp!, {r0}
+   10060:	e92d0001 	stmdb	sp!, {r0}
+
+/*- Write in the IVR to support Protect Mode  */
+/*- No effect in Normal Mode  */
+/*- De-assert the NIRQ and clear the source in Protect Mode */
+/* R14 = LR */
+            ldr         r14, =VIC_base_addr
+   10064:	e59fe028 	ldr	lr, [pc, #40]	; 10094 <.text+0x94>
+            ldr         r0 , [r14, #VIC_vect_offs]
+   10068:	e59e0030 	ldr	r0, [lr, #48]
+            /*str         r14, [r14, #VIC_vect_offs]*/
+
+/*- Enable Interrupt and Switch in Supervisor Mode */
+            msr         CPSR_c, #Mode_SVC
+   1006c:	e321f013 	msr	CPSR_c, #19	; 0x13
+
+/*- Save scratch/used registers and LR in User Stack */
+            /*stmfd       sp!, { r1-r3, r12, r14}*/
+            stmfd       sp!, { r1-r12, r14 }
+   10070:	e92d5ffe 	stmdb	sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, lr}
+
+/*- Branch to the routine pointed by the VIC-Vector-Address  */
+            mov         r14, pc
+   10074:	e1a0e00f 	mov	lr, pc
+            bx          r0
+   10078:	e12fff10 	bx	r0
+/*- Restore scratch/used registers and LR from User Stack*/
+            /* ldmia       sp!, { r1-r3, r12, r14} */
+            ldmia       sp!, { r1-r12, r14 }
+   1007c:	e8bd5ffe 	ldmia	sp!, {r1, r2, r3, r4, r5, r6, r7, r8, r9, sl, fp, ip, lr}
+
+/*- Disable Interrupt and switch back in IRQ mode */
+            msr         CPSR_c, #I_Bit | Mode_IRQ
+   10080:	e321f092 	msr	CPSR_c, #146	; 0x92
+
+#if 0
+/* VICVectAddr=0 is already done in the ISRs of the Philips-Examples 
+   so commented out here */
+/*- Mark the End of Interrupt on the VIC */
+            ldr         r14, =VIC_base_addr
+            str         r14, [r14, #VIC_vect_offs]
+#endif
+
+/*- Restore SPSR_irq and r0 from IRQ stack */
+            ldmia       sp!, {r0}
+   10084:	e8bd0001 	ldmia	sp!, {r0}
+
+/*- Restore SPSR_irq and r0 from IRQ stack */
+            ldmia       sp!, {r14}
+   10088:	e8bd4000 	ldmia	sp!, {lr}
+            msr         SPSR_cxsf, r14
+   1008c:	e16ff00e 	msr	SPSR_fsxc, lr
+
+/*- Restore adjusted  LR_irq from IRQ stack directly in the PC */
+            ldmia       sp!, {pc}^
+   10090:	e8fd8000 	ldmia	sp!, {pc}^
+   10094:	fffff000 	undefined instruction 0xfffff000
+
+00010098 <__startup>:
+   10098:	e59f00c8 	ldr	r0, [pc, #200]	; 10168 <.text+0x168>
+   1009c:	e321f0db 	msr	CPSR_c, #219	; 0xdb
+   100a0:	e1a0d000 	mov	sp, r0
+   100a4:	e2400080 	sub	r0, r0, #128	; 0x80
+   100a8:	e321f0d7 	msr	CPSR_c, #215	; 0xd7
+   100ac:	e1a0d000 	mov	sp, r0
+   100b0:	e2400080 	sub	r0, r0, #128	; 0x80
+   100b4:	e321f0d1 	msr	CPSR_c, #209	; 0xd1
+   100b8:	e1a0d000 	mov	sp, r0
+   100bc:	e2400080 	sub	r0, r0, #128	; 0x80
+   100c0:	e321f0d2 	msr	CPSR_c, #210	; 0xd2
+   100c4:	e1a0d000 	mov	sp, r0
+   100c8:	e2400c02 	sub	r0, r0, #512	; 0x200
+   100cc:	e321f0d3 	msr	CPSR_c, #211	; 0xd3
+   100d0:	e1a0d000 	mov	sp, r0
+   100d4:	e2400080 	sub	r0, r0, #128	; 0x80
+   100d8:	e321f01f 	msr	CPSR_c, #31	; 0x1f
+   100dc:	e1a0d000 	mov	sp, r0
+   100e0:	e59f1084 	ldr	r1, [pc, #132]	; 1016c <.text+0x16c>
+   100e4:	e59f2084 	ldr	r2, [pc, #132]	; 10170 <.text+0x170>
+   100e8:	e59f3084 	ldr	r3, [pc, #132]	; 10174 <.text+0x174>
+   100ec:	e1520003 	cmp	r2, r3
+   100f0:	0a000003 	beq	10104 <DataIsEmpty>
+
+000100f4 <LoopRel>:
+   100f4:	e1520003 	cmp	r2, r3
+   100f8:	34910004 	ldrcc	r0, [r1], #4
+   100fc:	34820004 	strcc	r0, [r2], #4
+   10100:	3afffffb 	bcc	100f4 <LoopRel>
+
+00010104 <DataIsEmpty>:
+   10104:	e3a00000 	mov	r0, #0	; 0x0
+   10108:	e59f1068 	ldr	r1, [pc, #104]	; 10178 <.text+0x178>
+   1010c:	e59f2068 	ldr	r2, [pc, #104]	; 1017c <.text+0x17c>
+   10110:	e1510002 	cmp	r1, r2
+   10114:	0a000002 	beq	10124 <BSSIsEmpty>
+
+00010118 <LoopZI>:
+   10118:	e1510002 	cmp	r1, r2
+   1011c:	34810004 	strcc	r0, [r1], #4
+   10120:	3afffffc 	bcc	10118 <LoopZI>
+
+00010124 <BSSIsEmpty>:
+   10124:	e59f0054 	ldr	r0, [pc, #84]	; 10180 <.text+0x180>
+   10128:	e59f1054 	ldr	r1, [pc, #84]	; 10184 <.text+0x184>
+
+0001012c <ctor_loop>:
+   1012c:	e1500001 	cmp	r0, r1
+   10130:	0a000005 	beq	1014c <ctor_end>
+   10134:	e4902004 	ldr	r2, [r0], #4
+   10138:	e92d0003 	stmdb	sp!, {r0, r1}
+   1013c:	e1a0e00f 	mov	lr, pc
+   10140:	e1a0f002 	mov	pc, r2
+   10144:	e8bd0003 	ldmia	sp!, {r0, r1}
+   10148:	eafffff7 	b	1012c <ctor_loop>
+
+0001014c <ctor_end>:
+   1014c:	e59f0034 	ldr	r0, [pc, #52]	; 10188 <.text+0x188>
+   10150:	e3100001 	tst	r0, #1	; 0x1
+   10154:	059fe030 	ldreq	lr, [pc, #48]	; 1018c <.text+0x18c>
+   10158:	159fe030 	ldrne	lr, [pc, #48]	; 10190 <.text+0x190>
+   1015c:	e12fff10 	bx	r0
+
+00010160 <__exit_ARM>:
+   10160:	eafffffe 	b	10160 <__exit_ARM>
+
+00010164 <__exit_THUMB>:
+   10164:	e7fe      	b.n	10164 <__exit_THUMB>
+   10166:	0000      	lsls	r0, r0, #0
+   10168:	0d00      	lsrs	r0, r0, #20
+   1016a:	4000      	ands	r0, r0
+   1016c:	027c      	lsls	r4, r7, #9
+   1016e:	0001      	lsls	r1, r0, #0
+   10170:	0000      	lsls	r0, r0, #0
+   10172:	4000      	ands	r0, r0
+   10174:	027c      	lsls	r4, r7, #9
+   10176:	0001      	lsls	r1, r0, #0
+   10178:	0000      	lsls	r0, r0, #0
+   1017a:	4000      	ands	r0, r0
+   1017c:	0004      	lsls	r4, r0, #0
+   1017e:	4000      	ands	r0, r0
+   10180:	027c      	lsls	r4, r7, #9
+   10182:	0001      	lsls	r1, r0, #0
+   10184:	027c      	lsls	r4, r7, #9
+   10186:	0001      	lsls	r1, r0, #0
+   10188:	01bc      	lsls	r4, r7, #6
+   1018a:	0001      	lsls	r1, r0, #0
+   1018c:	0160      	lsls	r0, r4, #5
+   1018e:	0001      	lsls	r1, r0, #0
+   10190:	0164      	lsls	r4, r4, #5
+   10192:	0001      	lsls	r1, r0, #0
+
+00010194 <delay_ms>:
+//The function will cause the firmware to delay for "count" milleseconds.
+void delay_ms(int count)
+{
+    int i;
+    count *= 10000;
+   10194:	e59f301c 	ldr	r3, [pc, #28]	; 101b8 <.text+0x1b8>
+   10198:	e0000093 	mul	r0, r3, r0
+   1019c:	e3a03000 	mov	r3, #0	; 0x0
+   101a0:	ea000001 	b	101ac <delay_ms+0x18>
+    for (i = 0; i < count; i++)	//We are going to count to 10000 "count" number of times
+        asm volatile ("nop");		//"nop" means no-operation.  We don't want to do anything during the delay
+   101a4:	e1a00000 	nop			(mov r0,r0)
+   101a8:	e2833001 	add	r3, r3, #1	; 0x1
+   101ac:	e1530000 	cmp	r3, r0
+   101b0:	bafffffb 	blt	101a4 <delay_ms+0x10>
+}
+   101b4:	e12fff1e 	bx	lr
+   101b8:	00002710 	andeq	r2, r0, r0, lsl r7
+
+000101bc <main>:
+   101bc:	e59f3048 	ldr	r3, [pc, #72]	; 1020c <.text+0x20c>
+   101c0:	e5932008 	ldr	r2, [r3, #8]
+   101c4:	e3822b02 	orr	r2, r2, #2048	; 0x800
+   101c8:	e3822112 	orr	r2, r2, #-2147483644	; 0x80000004
+   101cc:	e92d4070 	stmdb	sp!, {r4, r5, r6, lr}
+   101d0:	e5832008 	str	r2, [r3, #8]
+   101d4:	e59f2034 	ldr	r2, [pc, #52]	; 10210 <.text+0x210>
+   101d8:	e5832004 	str	r2, [r3, #4]
+   101dc:	e59f4028 	ldr	r4, [pc, #40]	; 1020c <.text+0x20c>
+   101e0:	e3a06004 	mov	r6, #4	; 0x4
+   101e4:	e3a05b02 	mov	r5, #2048	; 0x800
+   101e8:	e584600c 	str	r6, [r4, #12]
+   101ec:	e59f0020 	ldr	r0, [pc, #32]	; 10214 <.text+0x214>
+   101f0:	e5845004 	str	r5, [r4, #4]
+   101f4:	ebffffe6 	bl	10194 <delay_ms>
+   101f8:	e584500c 	str	r5, [r4, #12]
+   101fc:	e59f0010 	ldr	r0, [pc, #16]	; 10214 <.text+0x214>
+   10200:	e5846004 	str	r6, [r4, #4]
+   10204:	ebffffe2 	bl	10194 <delay_ms>
+   10208:	eafffff3 	b	101dc <main+0x20>
+   1020c:	e0028000 	and	r8, r2, r0
+   10210:	80000804 	andhi	r0, r0, r4, lsl #16
+   10214:	0000014d 	andeq	r0, r0, sp, asr #2
+
+00010218 <_read_r>:
+	}
+*/
+//	return len - i;
+	return 0;
+}
+   10218:	e3a00000 	mov	r0, #0	; 0x0
+   1021c:	e12fff1e 	bx	lr
+
+00010220 <_write_r>:
+
+_ssize_t _write_r (
+    struct _reent *r, 
+    int file, 
+    const void *ptr, 
+    size_t len)
+{
+/*
+	int i;
+	const unsigned char *p;
+	
+	p = (const unsigned char*) ptr;
+	
+	for (i = 0; i < len; i++) {
+		if (*p == '\n' ) uart0Putch('\r');
+		uart0Putch(*p++);
+	}
+*/
+	return len;
+}
+   10220:	e1a00003 	mov	r0, r3
+   10224:	e12fff1e 	bx	lr
+
+00010228 <_close_r>:
+
+int _close_r(
+    struct _reent *r, 
+    int file)
+{
+	return 0;
+}
+   10228:	e3a00000 	mov	r0, #0	; 0x0
+   1022c:	e12fff1e 	bx	lr
+
+00010230 <_lseek_r>:
+
+_off_t _lseek_r(
+    struct _reent *r, 
+    int file, 
+    _off_t ptr, 
+    int dir)
+{
+	return (_off_t)0;	/*  Always indicate we are at file beginning.	*/
+}
+   10230:	e3a00000 	mov	r0, #0	; 0x0
+   10234:	e12fff1e 	bx	lr
+
+00010238 <_fstat_r>:
+
+
+int _fstat_r(
+    struct _reent *r, 
+    int file, 
+    struct stat *st)
+{
+	/*  Always set as character device.				*/
+	st->st_mode = S_IFCHR;	
+   10238:	e3a03a02 	mov	r3, #8192	; 0x2000
+		/* assigned to strong type with implicit 	*/
+		/* signed/unsigned conversion.  Required by 	*/
+		/* newlib.					*/
+
+	return 0;
+}
+   1023c:	e3a00000 	mov	r0, #0	; 0x0
+   10240:	e5823004 	str	r3, [r2, #4]
+   10244:	e12fff1e 	bx	lr
+
+00010248 <isatty>:
+
+int isatty(int file); /* avoid warning */
+
+int isatty(int file)
+{
+	return 1;
+}
+   10248:	e3a00001 	mov	r0, #1	; 0x1
+   1024c:	e12fff1e 	bx	lr
+
+00010250 <_sbrk_r>:
+
+#if 0
+static void _exit (int n) {
+label:  goto label; /* endless loop */
+}
+#endif 
+
+/* "malloc clue function" */
+
+	/**** Locally used variables. ****/
+extern char end[];              /*  end is set in the linker command 	*/
+				/* file and is the end of statically 	*/
+				/* allocated data (thus start of heap).	*/
+
+static char *heap_ptr;		/* Points to current end of the heap.	*/
+
+/************************** _sbrk_r *************************************/
+/*  Support function.  Adjusts end of heap to provide more memory to	*/
+/* memory allocator. Simple and dumb with no sanity checks.		*/
+/*  struct _reent *r	-- re-entrancy structure, used by newlib to 	*/
+/*			support multiple threads of operation.		*/
+/*  ptrdiff_t nbytes	-- number of bytes to add.			*/
+/*  Returns pointer to start of new heap area.				*/
+/*  Note:  This implementation is not thread safe (despite taking a	*/
+/* _reent structure as a parameter).  					*/
+/*  Since _s_r is not used in the current implementation, the following	*/
+/* messages must be suppressed.						*/
+
+void * _sbrk_r(
+    struct _reent *_s_r, 
+    ptrdiff_t nbytes)
+{
+	char  *base;		/*  errno should be set to  ENOMEM on error	*/
+
+	if (!heap_ptr) {	/*  Initialize if first time through.		*/
+   10250:	e59f201c 	ldr	r2, [pc, #28]	; 10274 <.text+0x274>
+   10254:	e5923000 	ldr	r3, [r2]
+   10258:	e3530000 	cmp	r3, #0	; 0x0
+		heap_ptr = end;
+   1025c:	059f3014 	ldreq	r3, [pc, #20]	; 10278 <.text+0x278>
+   10260:	05823000 	streq	r3, [r2]
+	}
+	base = heap_ptr;	/*  Point to end of heap.			*/
+   10264:	e5920000 	ldr	r0, [r2]
+	heap_ptr += nbytes;	/*  Increase heap.				*/
+   10268:	e0803001 	add	r3, r0, r1
+   1026c:	e5823000 	str	r3, [r2]
+	
+	return base;		/*  Return pointer to start of new heap area.	*/
+}
+   10270:	e12fff1e 	bx	lr
+   10274:	40000000 	andmi	r0, r0, r0
+   10278:	40000d00 	andmi	r0, r0, r0, lsl #26
